@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= profile.username %> | Link Page</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="public-page">
+    <div class="container">
+        <% if (profile) { %>
+        <header>
+            <!-- [수정] DB에서 불러온 데이터로 교체 -->
+            <img src="<%= profile.profile_image_url %>" alt="프로필 사진" class="profile-img">
+            <h1 class="profile-title"><%= profile.username %></h1>
+            <p class="profile-description"><%= profile.description %></p>
+        </header>
+        <% } %>
+        <main class="links-grid">
+            <% links.forEach(link => { %>
+                <a href="/click/<%= link.id %>" 
+                   target="_blank" 
+                   class="link-card" 
+                   <% if (link.image) { %>
+                       style="background-image: url('<%= link.image %>');"
+                   <% } %>
+                >
+                    <span class="link-card-title"><%= link.title %></span>
+                </a>
+            <% }) %>
+        </main>
+    </div>
+</body>
+</html>

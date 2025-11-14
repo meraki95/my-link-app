@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Link</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container admin-container">
+        <header class="admin-header">
+            <h2>링크 수정</h2>
+            <a href="/admin">돌아가기</a>
+        </header>
+
+        <form class="edit-form" action="/admin/edit/<%= link.id %>" method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="링크 제목" value="<%= link.title %>" required>
+            <input type="url" name="url" placeholder="URL" value="<%= link.url %>" required>
+            
+            <label>현재 이미지</label>
+            <% if (link.image) { %>
+                <img src="<%= link.image %>" alt="Current Image" style="max-width: 100%; border-radius: 8px; margin-bottom: 1rem;">
+                <input type="hidden" name="currentImage" value="<%= link.image %>">
+            <% } else { %>
+                <p>이미지 없음</p>
+                <input type="hidden" name="currentImage" value="">
+            <% } %>
+
+            <label for="image">이미지 변경 (선택)</label>
+            <input type="file" name="image" id="image" accept="image/*">
+            
+            <button type="submit" style="margin-top: 1rem;">수정 완료</button>
+        </form>
+    </div>
+</body>
+</html>

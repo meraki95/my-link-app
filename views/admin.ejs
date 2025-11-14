@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+    <!-- SortableJS 라이브러리 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="container admin-container">
+        <header class="admin-header">
+            <h2>대시보드</h2>
+            <a href="/logout">로그아웃</a>
+        </header>
+
+        <!-- [NEW] 대시보드 통계 -->
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h4>총 링크 수</h4>
+                <p><%= totalLinks %></p>
+            </div>
+            <div class="stat-card">
+                <h4>총 클릭 수</h4>
+                <p><%= totalClicks %></p>
+            </div>
+        </div>
+         <!-- ✨ [NEW] 프로필 관리 폼 -->
+        <div class="profile-form">
+            <h3>프로필 관리</h3>
+            <form action="/admin/update-profile" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="username">사용자 이름</label>
+                    <input type="text" id="username" name="username" value="<%= profile.username %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">소개 문구</label>
+                    <textarea id="description" name="description" rows="3"><%= profile.description %></textarea>
+                </div>
+                <div class="form-group">
+                    <label>현재 프로필 사진</label>
+                    <img src="<%= profile.profile_image_url %>" alt="Current Profile Image" class="current-profile-img">
+                    <input type="hidden" name="currentImage" value="<%= profile.profile_image_url %>">
+                </div>
+                <div class="form-group">
+                    <label for="profile_image">프로필 사진 변경</label>
+                    <input type="file" id="profile_image" name="profile_image" accept="image/*">
+                </div>
+                <button type="submit">프로필 저장</button>
+            </form>
+        </div>
+        <!-- 링크 추가 폼 -->
+        <form class="add-form" action="/admin/add" method="POST" enctype="multipart/form-data">
+            <h3>새 링크 추가</h3>
+            <input type="text" name="title" placeholder="링크 제목" required>
+            <input type="url" name="url" placeholder="URL" required>
+            <label for="image">대표 이미지</label>
+            <input type="file" name="image" id="image" accept="image/*">
+            <button type="submit" style="margin-top: 1rem;">추가하기</button>
+        </form>
+
+        <!-- 현재 링크 목록 -->
+        <div class="link-list">
+            <h3>등록된 링크 <small>(드래그해서 순서 변경)</small></h3>
+            <div id="sortable-list">
+                <% links.forEach(link => { %>
+                    <div class="link-item" data-id="<%= link.id %>">
+                        <div class="drag-handle">::</div>
+                        <div class="link-info">
+                            <% if (link.image) { %>
+                               <img src="<%= link.image %>" alt="" class="link-img-small">
+                            <% } %>
+                            <div>
+                                <strong><%= link.title %></strong>
+                                <span><i class="fas fa-mouse-pointer"></i> <%= link.clicks %> Clicks</span>
+                            </div>
+                        </div>
+                        <div class="link-actions">
+                            <a href="/admin/edit/<%= link.id %>" class="action-btn edit-btn">수정</a>
+                            <form action="/admin/delete/<%= link.id %>" method="POST" onsubmit="return confirm('정말로 삭제하시겠습니까?');">
+                                <button type="submit" class="action-btn delete-btn">삭제</button>
+                            </form>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+
+    <!-- [NEW] 순서 변경 스크립트 -->
+    <script>
+        const list = document.getElementById('sortable-list');
+        Sortable.create(list, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function(evt) {
+                const order = Array.from(list.children).map(el => el.dataset.id);
+                fetch('/admin/update-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: order })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(!data.success) {
+                        alert('순서 변경에 실패했습니다.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
