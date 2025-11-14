@@ -48,6 +48,14 @@ app.use(session({
 // ✨ [MODIFIED] Multer 설정을 디스크가 아닌 메모리 스토리지로 변경
 const upload = multer({ storage: multer.memoryStorage() });
 
+function isLoggedIn(req, res, next) {
+    if (req.session.loggedin) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
+
 // --- R2 헬퍼 함수 ---
 const uploadToR2 = async (file) => {
     if (!file) return null;
