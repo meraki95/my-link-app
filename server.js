@@ -12,6 +12,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
 const ADMIN_PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
 const SESSION_SECRET = process.env.SESSION_SECRET || 'your-super-secret-key';
 
+// 🔐 파이썬 자동화 전용 API 키 (원하면 바꿔도 됨)
+const API_SECRET = process.env.API_SECRET || 'auto-news-secret';
+
+
 // ✨ [NEW] R2 접속 정보 환경 변수에서 가져오기
 const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
@@ -203,7 +207,47 @@ app.post('/admin/update-order', (req, res) => {
         res.json({ success: true });
     });
 });
+// ✅ 파이썬 자동화용: 쿠팡 상품 링크를 links 테이블에 추가하는 API
+app.post('/api/admin/links', async (req, res) => {
+    try {
+        // 🔐 간단한 API 키 체크
+        const apiKey = req.headers['x-api-key'];
+        if (apiKey !== API_SECRET) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
 
+        const { title, url, image } = req.body;
+
+        if (!title || !url) {
+            return res.status(400).json({
+                success: false,
+                message: 'title과 url은 필수입니다.'
+            });
+        }
+
+        // ⚠️ 현재 links 테이블 구조:
+        // /admin/add 에서 INSERT INTO links (title, url, image) 쓰고 있으므로
+        // 여기서도 동일하게 맞춰준다.
+        db.run(
+            "INSERT INTO links (title, url, image) VALUES (?, ?, ?)",
+            [title, url, image || null],
+            function (err) {
+                if (err) {
+                    console.error('링크 추가 오류:', err);
+                    return res.status(500).json({ success: false, message: 'DB 오류' });
+                }
+
+                return res.json({
+                    success: true,
+                    id: this.lastID
+                });
+            }
+        );
+    } catch (err) {
+        console.error('API /api/admin/links 오류:', err);
+        return res.status(500).json({ success: false, message: '서버 오류' });
+    }
+});
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
 });
