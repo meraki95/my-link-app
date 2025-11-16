@@ -207,3 +207,22 @@ app.post('/admin/update-order', (req, res) => {
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
 });
+
+app.get('/cron-ping', async (req, res) => {
+    try {
+        // (선택) DB가 살아있는지 가볍게 체크하고 싶으면:
+        // db.get("SELECT 1", [], (err, row) => {
+        //     if (err) {
+        //         console.error('DB check failed:', err);
+        //         return res.status(500).send('ERROR');
+        //     }
+        //     res.send('OK'); // 응답은 딱 한 줄
+        // });
+
+        // 그냥 살아있다는 신호만 주면 된다면:
+        res.send('OK');      // 이 한 줄이면 충분
+    } catch (e) {
+        console.error(e);
+        res.status(500).send('ERROR');
+    }
+});
